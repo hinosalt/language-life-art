@@ -1,6 +1,5 @@
 const canvas = document.getElementById("field");
 const ctx = canvas.getContext("2d");
-const pulseLine = document.getElementById("pulseLine");
 
 const lexicon = {
   ja: {
@@ -587,7 +586,6 @@ function spawnUtterance(now, anchorWeight = 0) {
   const phrase = nextPhrase(now);
   const text = fragmentFromPhrase(phrase.text);
   rememberPhrase(phrase);
-  pulseLine.textContent = phrase.text;
 
   const mixRate = clamp(anchorWeight, 0, 1);
   const point = randomUtterancePoint();
