@@ -525,22 +525,72 @@ function resize() {
   }
 }
 
+function randomPointInsideCanvas(marginRatio = 0.07) {
+  const marginX = Math.min(140, state.width * marginRatio);
+  const marginY = Math.min(120, state.height * marginRatio);
+  const x = marginX + Math.random() * Math.max(1, state.width - marginX * 2);
+  const y = marginY + Math.random() * Math.max(1, state.height - marginY * 2);
+  return { x, y };
+}
+
+function randomUtterancePoint() {
+  const minDistSq = 86 * 86;
+  const lookback = Math.min(72, state.utterances.length);
+
+  for (let attempt = 0; attempt < 9; attempt += 1) {
+    const point = randomPointInsideCanvas(0.06);
+    let crowded = false;
+
+    for (let i = state.utterances.length - lookback; i < state.utterances.length; i += 1) {
+      if (i < 0) continue;
+      const node = state.utterances[i];
+      const dx = node.x - point.x;
+      const dy = node.y - point.y;
+      if (dx * dx + dy * dy < minDistSq) {
+        crowded = true;
+        break;
+      }
+    }
+
+    if (!crowded) return point;
+  }
+
+  return randomPointInsideCanvas(0.06);
+}
+
+function randomWispPoint() {
+  const minDistSq = 120 * 120;
+  const lookback = Math.min(24, state.wisps.length);
+
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const point = randomPointInsideCanvas(0.03);
+    let crowded = false;
+
+    for (let i = state.wisps.length - lookback; i < state.wisps.length; i += 1) {
+      if (i < 0) continue;
+      const node = state.wisps[i];
+      const dx = node.x - point.x;
+      const dy = node.y - point.y;
+      if (dx * dx + dy * dy < minDistSq) {
+        crowded = true;
+        break;
+      }
+    }
+
+    if (!crowded) return point;
+  }
+
+  return randomPointInsideCanvas(0.03);
+}
+
 function spawnUtterance(now, anchorWeight = 0) {
   const phrase = nextPhrase(now);
   const text = fragmentFromPhrase(phrase.text);
   rememberPhrase(phrase);
   pulseLine.textContent = phrase.text;
 
-  const orbit = Math.min(state.width, state.height) * (0.08 + Math.random() * 0.45);
-  const angle = Math.random() * Math.PI * 2;
-  const centerX = state.width * 0.5;
-  const centerY = state.height * 0.5;
-
   const mixRate = clamp(anchorWeight, 0, 1);
-  const baseX = mix(centerX, state.focus.x, mixRate);
-  const baseY = mix(centerY, state.focus.y, mixRate);
-  const x = baseX + Math.cos(angle) * orbit * (0.55 + (1 - mixRate) * 0.45);
-  const y = baseY + Math.sin(angle) * orbit * (0.55 + (1 - mixRate) * 0.45);
+  const point = randomUtterancePoint();
 
   state.utterances.push({
     source: phrase.text,
@@ -550,8 +600,8 @@ function spawnUtterance(now, anchorWeight = 0) {
     tone: phrase.tone,
     cadence: phrase.cadence,
     flux: phrase.flux,
-    x,
-    y,
+    x: point.x,
+    y: point.y,
     vx: (Math.random() - 0.5) * 0.35 + (state.focus.targetX - state.focus.x) * 0.0008,
     vy: (Math.random() - 0.5) * 0.35 + (state.focus.targetY - state.focus.y) * 0.0008,
     age: 0,
@@ -568,12 +618,11 @@ function spawnUtterance(now, anchorWeight = 0) {
 
 function spawnWisp(anchorWeight = 0) {
   const mixRate = clamp(anchorWeight, 0, 1);
-  const x = mix(state.width * 0.5, state.focus.x, mixRate) + (Math.random() - 0.5) * 180;
-  const y = mix(state.height * 0.5, state.focus.y, mixRate) + (Math.random() - 0.5) * 180;
+  const point = randomWispPoint();
 
   state.wisps.push({
-    x,
-    y,
+    x: point.x,
+    y: point.y,
     r: 80 + Math.random() * 240,
     vx: (Math.random() - 0.5) * 0.11,
     vy: (Math.random() - 0.5) * 0.11,
