@@ -534,7 +534,7 @@ function randomPointInsideCanvas(marginRatio = 0.07) {
 
 function randomUtterancePoint() {
   const minDistSq = 86 * 86;
-  const lookback = Math.min(72, state.utterances.length);
+  const lookback = Math.min(40, state.utterances.length);
 
   for (let attempt = 0; attempt < 9; attempt += 1) {
     const point = randomPointInsideCanvas(0.06);
@@ -559,7 +559,7 @@ function randomUtterancePoint() {
 
 function randomWispPoint() {
   const minDistSq = 120 * 120;
-  const lookback = Math.min(24, state.wisps.length);
+  const lookback = Math.min(14, state.wisps.length);
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const point = randomPointInsideCanvas(0.03);
@@ -609,8 +609,8 @@ function spawnUtterance(now, anchorWeight = 0) {
     seed: Math.random() * Math.PI * 2,
   });
 
-  if (state.utterances.length > 240) {
-    state.utterances.splice(0, state.utterances.length - 240);
+  if (state.utterances.length > 140) {
+    state.utterances.splice(0, state.utterances.length - 140);
   }
 }
 
@@ -629,8 +629,8 @@ function spawnWisp(anchorWeight = 0) {
     hue: (state.hueShift + 20 + Math.random() * 140 + mixRate * 22) % 360,
   });
 
-  if (state.wisps.length > 46) {
-    state.wisps.splice(0, state.wisps.length - 46);
+  if (state.wisps.length > 24) {
+    state.wisps.splice(0, state.wisps.length - 24);
   }
 }
 
@@ -656,19 +656,19 @@ function updateFocus(dt, now) {
 function update(dt, now) {
   updateFocus(dt, now);
 
-  const phraseInterval = 340 - state.focus.influence * 170;
+  const phraseInterval = 500 - state.focus.influence * 180;
   if (now - state.lastPhraseSpawn > phraseInterval) {
     state.lastPhraseSpawn = now;
     spawnUtterance(now, state.focus.influence);
   }
 
-  const wispInterval = 190 - state.focus.influence * 70;
+  const wispInterval = 320 - state.focus.influence * 90;
   if (now - state.lastWispSpawn > wispInterval) {
     state.lastWispSpawn = now;
     spawnWisp(state.focus.influence);
   }
 
-  if (state.focus.momentum > 0.68 && Math.random() < 0.35) {
+  if (state.focus.momentum > 0.72 && Math.random() < 0.12) {
     spawnUtterance(now, 1);
   }
 
@@ -729,7 +729,7 @@ function drawBackground(now) {
   ctx.save();
   ctx.globalCompositeOperation = "screen";
   ctx.fillStyle = `hsla(${hueA + 80}, 44%, 70%, ${0.02 + state.focus.influence * 0.06})`;
-  for (let i = 0; i < 10; i += 1) {
+  for (let i = 0; i < 6; i += 1) {
     const x = ((Math.sin(t * 0.8 + i) + 1) * 0.5) * state.width * (0.6 + state.focus.influence * 0.4);
     const y = ((Math.cos(t * 1.1 + i * 0.66) + 1) * 0.5) * state.height;
     ctx.beginPath();
@@ -796,7 +796,7 @@ function drawWaveConnection(a, b, proximity, now) {
 
   const nx = -dy / len;
   const ny = dx / len;
-  const steps = clamp(Math.floor(len / 70), 4, 9);
+  const steps = clamp(Math.floor(len / 95), 3, 6);
   const amp = Math.min(26, 4 + len * 0.07) * (0.4 + proximity * 0.8);
   const freq = 1.2 + ((a.cadence + b.cadence) * 0.5) * 2.2;
 
@@ -819,9 +819,9 @@ function drawWaveConnection(a, b, proximity, now) {
 }
 
 function drawConnections(now) {
-  const maxNodes = Math.min(state.utterances.length, 120);
-  const range = 20000 + state.focus.influence * 16000;
-  const maxEdges = 320;
+  const maxNodes = Math.min(state.utterances.length, 68);
+  const range = 13000 + state.focus.influence * 9000;
+  const maxEdges = 120;
   let edges = 0;
 
   ctx.save();
@@ -912,6 +912,6 @@ window.addEventListener("pointermove", onPointerMove, { passive: true });
 window.addEventListener("resize", resize);
 
 resize();
-for (let i = 0; i < 26; i += 1) spawnUtterance(performance.now(), 0.2);
-for (let i = 0; i < 16; i += 1) spawnWisp(0.2);
+for (let i = 0; i < 14; i += 1) spawnUtterance(performance.now(), 0.2);
+for (let i = 0; i < 9; i += 1) spawnWisp(0.2);
 requestAnimationFrame(frame);
